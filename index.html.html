@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Eighteen short Python lessons with quick checks and code challenges.">
+<title>Learn Python</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: a night-sky world (slow aurora + drifting code) behind dark glass bars and one white lesson sheet.
+   Lesson sheet = three stages (run, check, write) with terminal-style code windows.
+   This is a single look by choice: dark world, light paper. */
+:root{
+  color-scheme:dark;
+  --night:#080d28; --glass:rgba(9,15,44,.64); --glass-line:rgba(255,255,255,.16);
+  --paper:#fbfcff; --ink:#0f1b3d; --ink2:#3b4a6b; --mute:#5d6b8a; --wash:#eef2fb; --line:#dbe3f3;
+  --sun:#ffd43b; --sun-d:#c29b00; --sky:#5aa9ff;
+  --ok:#0f7a43; --ok-bg:#e6f7ed; --ok-line:#a8e0be; --bad:#b42323; --bad-bg:#fdeceb; --bad-line:#f2b1ac;
+  --code:#0c1433; --code-h:#141e45; --code-ink:#e6edff; --code-mute:#7584b0;
+  --k:#ff8fab; --s:#9be28a; --n:#ffbe7a; --c:#7584b0; --f:#ffd43b; --b:#7fc4ff;
+  --font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--night);color:var(--ink);font:500 17px/1.6 var(--font);-webkit-text-size-adjust:100%}
+h1,h2,h3,p,ol,ul{margin:0}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ic{width:1.1em;height:1.1em;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ic.fill{fill:currentColor;stroke:none}
+.ic.big{width:40px;height:40px}
+
+/* ---------- buttons: tactile, they press down ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 24px;border:0;border-radius:999px;font-weight:700;font-size:1rem;cursor:pointer;text-decoration:none;transition:transform .08s,box-shadow .08s,background .15s}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sun{background:var(--sun);color:#1a1500;box-shadow:0 4px 0 var(--sun-d)}
+.btn.sun:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--sun-d)}
+.btn.line{background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:0 3px 0 var(--line)}
+.btn.line:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.btn.glass{background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.35)}
+.btn.glass:hover{background:rgba(255,255,255,.18)}
+.btn.red{background:#d63a3a;color:#fff;box-shadow:0 3px 0 #8f1f1f}
+.btn.red:active{transform:translateY(2px);box-shadow:0 1px 0 #8f1f1f}
+.btn.sm{min-height:38px;padding:0 14px;font-size:.9rem}
+.btn.block{width:100%}
+
+/* ---------- background world ---------- */
+.bgfx{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--night)}
+.bgl{position:absolute;inset:0;opacity:0;transition:opacity 1.6s}
+.bgl.on{opacity:1}
+.blob{position:absolute;width:70vmax;height:70vmax;border-radius:50%;filter:blur(80px);opacity:.42;transition:background 1.6s;will-change:transform}
+.blob.a{left:-25vmax;top:-22vmax;background:var(--b1,#3b82f6);animation:d1 32s ease-in-out infinite alternate}
+.blob.b{right:-32vmax;top:22vh;background:var(--b2,#7c3aed);animation:d2 38s ease-in-out infinite alternate}
+.blob.c{left:2vmax;bottom:-38vmax;background:var(--b3,#06b6d4);animation:d3 44s ease-in-out infinite alternate}
+@keyframes d1{to{transform:translate(16vmax,10vmax) scale(1.15)}}
+@keyframes d2{to{transform:translate(-14vmax,-8vmax) scale(.9)}}
+@keyframes d3{to{transform:translate(12vmax,-10vmax) scale(1.2)}}
+.bgfx::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.12) 1px,transparent 1.3px);background-size:26px 26px;-webkit-mask-image:linear-gradient(180deg,#000,transparent 80%);mask-image:linear-gradient(180deg,#000,transparent 80%)}
+.fl{position:absolute;bottom:-40px;font:500 .9rem var(--mono);color:rgba(255,255,255,.15);white-space:nowrap;animation:fl linear infinite}
+body[data-t="2"] .fl{color:rgba(110,231,160,.32)}
+@keyframes fl{0%{opacity:0;transform:translateY(0)}10%,85%{opacity:1}100%{opacity:0;transform:translateY(-110vh)}}
+#cv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90}
+#toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:var(--sun);color:#1a1500;font-weight:800;padding:10px 20px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.35);animation:tin .22s ease-out;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+@keyframes tin{from{opacity:0;transform:translate(-50%,10px)}}
+.sw{display:flex;gap:12px;justify-content:center;align-items:center;color:rgba(255,255,255,.85);font-size:.85rem}
+.sw button{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.45);cursor:pointer;padding:0}
+.sw button[aria-pressed="true"]{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+
+/* ---------- sign in ---------- */
+#authwrap{position:fixed;inset:0;z-index:20;overflow:auto;display:flex;padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));color:#fff}
+.auth-in{margin:auto;width:100%;max-width:420px;display:flex;flex-direction:column;gap:20px}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{width:68px;height:68px;border-radius:22px;display:grid;place-items:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);flex:none}
+.brand h1{font-size:clamp(2.3rem,10vw,3.1rem);font-weight:800;letter-spacing:-.035em;line-height:1;text-shadow:0 2px 18px rgba(0,0,0,.35)}
+.tagline{font-size:1.08rem;line-height:1.55;color:rgba(255,255,255,.92);max-width:36ch;text-shadow:0 1px 10px rgba(0,0,0,.3)}
+.gcard{background:var(--glass);border:1px solid var(--glass-line);border-radius:28px;padding:24px 20px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 20px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:14px}
+.gcard h2{font-size:1.75rem;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.asub{color:rgba(255,255,255,.82);margin-top:-8px}
+.auth{display:flex;flex-direction:column;gap:12px}
+.field{width:100%;height:54px;border-radius:999px;border:1.5px solid rgba(255,255,255,.3);background:rgba(0,0,0,.3);color:#fff;padding:0 22px;font-size:1rem}
+.field::placeholder{color:rgba(255,255,255,.62)}
+.amsg{font-weight:700;color:#ffb4ab}
+.amsg:empty{display:none}
+.or{text-align:center;color:rgba(255,255,255,.75)}
+.fine{color:rgba(255,255,255,.75);font-size:.85rem;line-height:1.45}
+.switch{color:rgba(255,255,255,.85)}
+.switch a{color:#fff;font-weight:700;text-decoration:underline;cursor:pointer}
+
+/* ---------- app shell ---------- */
+#app{position:relative;z-index:1}
+.wrap{width:100%;max-width:720px;margin:0 auto;padding-inline:16px;padding-block:12px 64px;display:flex;flex-direction:column;gap:14px}
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-direction:column;gap:11px;padding:10px 12px 12px;background:var(--glass);border:1px solid var(--glass-line);border-radius:22px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff}
+.hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#0f1b3d;flex:none}
+.me{min-width:0;flex:1 1 80px;line-height:1.2}
+.me b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me small{color:rgba(255,255,255,.8);font-size:.8rem}
+.xp{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,212,59,.16);color:var(--sun);font-weight:800;font-variant-numeric:tabular-nums}
+.btn.sm .btxt{display:none}
+.seg{display:flex;gap:4px}
+.seg i{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden}
+.seg i.gap{margin-left:8px}
+.seg i b{display:block;height:100%;width:0;background:var(--sun);transition:width .4s}
+.panel{background:var(--glass);border:1px solid var(--glass-line);border-radius:22px;padding:14px 0 10px;color:#fff;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.prog{padding:0 16px 10px;font-size:.94rem;color:rgba(255,255,255,.9)}
+.trail{position:relative;display:flex;align-items:flex-start;overflow-x:auto;padding:6px 16px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.trail::-webkit-scrollbar{display:none}
+.node{display:flex;flex-direction:column;align-items:center;gap:7px;width:66px;flex:none;background:none;border:0;padding:0;color:#fff;cursor:pointer}
+.dot{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-variant-numeric:tabular-nums;border:2px solid rgba(255,255,255,.38);background:rgba(255,255,255,.07)}
+.node.half .dot{border-color:var(--sun);color:var(--sun)}
+.node.done .dot{background:var(--sun);border-color:var(--sun);color:#1a1500}
+.node.cur .dot{box-shadow:0 0 0 5px rgba(255,255,255,.3)}
+.node.cur:not(.done) .dot{background:#fff;border-color:#fff;color:var(--ink)}
+.node.lock .dot{opacity:.65}
+.lbl{font-size:.72rem;line-height:1.15;color:rgba(255,255,255,.88);max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ln{flex:none;width:14px;height:3px;border-radius:2px;background:rgba(255,255,255,.24);margin-top:21px}
+.ln.on{background:var(--sun)}
+.gate{flex:none;display:flex;align-items:center;gap:6px;height:34px;margin:6px 10px 0;padding:0 12px;border-radius:999px;font-size:.78rem;font-weight:700;color:var(--sun);background:rgba(255,212,59,.13);border:1.5px dashed rgba(255,212,59,.65);white-space:nowrap}
+
+/* ---------- lesson sheet ---------- */
+.sheet{background:var(--paper);color:var(--ink);border-radius:28px;padding:24px 18px 18px;display:flex;flex-direction:column;gap:26px;box-shadow:0 26px 60px rgba(0,0,0,.38)}
+.lh{display:flex;flex-direction:column;gap:12px}
+.meta{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:.82rem;font-weight:700;background:var(--wash);color:var(--ink2)}
+.chip.adv{background:#fff1b8;color:#5e4800}
+.chip.exp{background:#e6dcff;color:#3b1f8f}
+.sheet h2{font-size:clamp(1.8rem,7vw,2.4rem);line-height:1.06;font-weight:800;letter-spacing:-.03em;text-wrap:balance}
+.lead{color:var(--ink2);font-size:1.06rem;line-height:1.65;max-width:62ch}
+.lead code,.q code,.task code{font:600 .88em var(--mono);background:var(--wash);color:var(--ink);padding:2px 7px;border-radius:7px}
+.stage{display:flex;flex-direction:column;gap:14px;padding-top:24px;border-top:1.5px solid var(--line)}
+.sh{display:flex;align-items:center;gap:10px}
+.bd{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#fff;font-weight:800;font-size:.95rem;flex:none}
+.bd.ok{background:var(--ok)}
+.sh h3{flex:1;min-width:0;font-size:1.25rem;font-weight:800;letter-spacing:-.015em}
+.st{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:.8rem;font-weight:700;background:var(--wash);color:var(--mute);white-space:nowrap}
+.st.ok{background:var(--ok-bg);color:var(--ok)}
+.q,.task{color:var(--ink2);font-size:1.05rem;line-height:1.6}
+.win{background:var(--code);border-radius:14px;overflow:hidden;color:var(--code-ink)}
+.wh{display:flex;align-items:center;gap:10px;min-height:42px;padding:5px 8px 5px 14px;background:var(--code-h)}
+.dots{display:flex;gap:6px}
+.dots i{width:10px;height:10px;border-radius:50%;background:#ff7a7a;opacity:.85}
+.dots i:nth-child(2){background:#ffd166}
+.dots i:nth-child(3){background:#5ee08a}
+.fn{flex:1;min-width:0;font:500 .8rem var(--mono);color:var(--code-mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.run{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;border:0;background:var(--sun);color:#1a1500;font-weight:800;font-size:.82rem;cursor:pointer}
+.run:disabled{opacity:.5}
+.win pre{margin:0;padding:14px 16px;overflow-x:auto;font:400 .9rem/1.65 var(--mono);tab-size:4;color:var(--code-ink)}
+.win.out pre{color:#b9f1cb}
+.pr{color:var(--code-mute)}
+.k{color:var(--k)}.s{color:var(--s)}.n{color:var(--n)}.c{color:var(--c);font-style:italic}.f{color:var(--f)}.b{color:var(--b)}
+.opts{display:grid;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px 8px 10px;border-radius:16px;border:2px solid var(--line);background:#fff;color:var(--ink);text-align:left;cursor:pointer;box-shadow:0 3px 0 var(--line);transition:transform .08s,box-shadow .08s}
+.opt:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.opt .lt{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--wash);font:700 .95rem var(--mono);flex:none}
+.opt .tx{min-width:0;overflow-wrap:anywhere;font:600 .95rem var(--mono)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:var(--ok-bg);color:var(--ok);box-shadow:0 3px 0 var(--ok-line)}
+.opt.right .lt{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg);color:var(--bad);box-shadow:0 3px 0 var(--bad-line)}
+.opt.wrong .lt{background:var(--bad);color:#fff}
+.ed{display:flex;align-items:stretch}
+.gut{margin:0;min-width:42px;padding:14px 10px 14px 12px;text-align:right;color:#51619a;border-right:1px solid rgba(255,255,255,.08);user-select:none;-webkit-user-select:none}
+.gut,.ed textarea{font:400 16px/26px var(--mono)}
+.ed textarea{flex:1;min-width:0;display:block;margin:0;padding:14px;background:transparent;border:0;outline:0;resize:none;color:var(--code-ink);white-space:pre;overflow-x:auto;overflow-y:hidden;tab-size:4;min-height:184px}
+.ed textarea::placeholder{color:var(--code-mute)}
+.win:focus-within{box-shadow:0 0 0 3px var(--sky)}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+.acts .btn{flex:1 1 110px;white-space:nowrap}
+.acts #runcode{flex:2 1 170px}
+.note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;font-weight:700;line-height:1.45;background:var(--wash);color:var(--ink2)}
+.note .ic{margin-top:.2em}
+.note.ok{background:var(--ok-bg);color:var(--ok)}
+.note.bad{background:var(--bad-bg);color:var(--bad)}
+.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.nav2{display:flex;gap:12px;padding-top:6px}
+.nav2 .btn{flex:1}
+
+/* ---------- subscription sheet ---------- */
+#pay{position:fixed;inset:0;z-index:50;display:flex;overflow:auto;background:rgba(4,8,26,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.pbox{width:100%;max-width:480px;margin:auto auto 0;background:#0f1838;color:#fff;border:1px solid var(--glass-line);border-radius:28px 28px 0 0;padding:26px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+@media (min-width:640px){#pay{padding:24px}.pbox{margin:auto;border-radius:28px}}
+.pbox h2{font-size:1.75rem;font-weight:800;letter-spacing:-.025em;line-height:1.1;text-wrap:balance}
+.pbox .sub{color:rgba(255,255,255,.8)}
+.feats{list-style:none;padding:0;display:grid;gap:8px}
+.feats li{display:flex;gap:10px;align-items:center;color:rgba(255,255,255,.92)}
+.feats .ic{color:var(--sun);stroke-width:3}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:6px}
+.pl{position:relative;display:flex;flex-direction:column;gap:2px;align-items:flex-start;min-width:0;padding:18px 14px 14px;border-radius:18px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.05);color:#fff;text-align:left;cursor:pointer}
+.pl[aria-checked="true"]{border-color:var(--sun);background:rgba(255,212,59,.12)}
+.pl .pn{font-weight:700}
+.pl .pp{font-size:2.2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.pl .pe{font-size:.85rem;color:rgba(255,255,255,.75)}
+.pl .tg{position:absolute;top:-11px;left:12px;background:var(--sun);color:#1a1500;font-size:.72rem;font-weight:800;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.pl .rd{position:absolute;top:14px;right:14px;width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:grid;place-items:center}
+.pl[aria-checked="true"] .rd{background:var(--sun);border-color:var(--sun);color:#1a1500}
+.pl .rd .ic{width:12px;height:12px;stroke-width:3.5;opacity:0}
+.pl[aria-checked="true"] .rd .ic{opacity:1}
+.qrw{background:#fff;border-radius:22px;padding:14px;width:fit-content;margin:0 auto}
+.qrw img{display:block;width:210px;height:210px;max-width:100%;image-rendering:pixelated}
+.amt{text-align:center}
+.amt b{display:block;font-size:2.6rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.amt span{color:rgba(255,255,255,.8)}
+.upirow{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.upirow code{font:600 1rem var(--mono);background:rgba(255,255,255,.1);padding:8px 14px;border-radius:12px;overflow-wrap:anywhere}
+.steps{list-style:none;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;line-height:1.45;color:rgba(255,255,255,.92)}
+.steps li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:rgba(255,212,59,.18);color:var(--sun);font-weight:800;font-size:.85rem}
+
+.textbtn{background:none;border:0;color:rgba(255,255,255,.85);font-weight:700;text-decoration:underline;cursor:pointer;padding:8px;align-self:center}
+.lnk{display:flex}
+.tiers{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;background:rgba(255,255,255,.08);border-radius:999px}
+.tiers button{height:44px;border-radius:999px;border:0;background:transparent;color:#fff;font-weight:700;cursor:pointer}
+.tiers button[aria-checked="true"]{background:var(--sun);color:#1a1500}
+.cpn{display:flex;flex-direction:column;gap:8px}
+.cpn .textbtn{align-self:flex-start;padding:4px 0}
+.cprow{display:flex;gap:8px;align-items:center}
+.cprow .field{height:46px;flex:1;min-width:0;padding:0 18px}
+.cpok{display:flex;gap:8px;align-items:center;font-weight:700;color:#8af5b0}
+.cpok .ic{stroke-width:3}
+.pl .pp s{font-size:1.1rem;font-weight:600;color:rgba(255,255,255,.6);margin-right:8px}
+
+@media (min-width:640px){.sheet{padding:30px 30px 24px}.btn.sm .btxt{display:inline}}
+@media (prefers-reduced-motion:reduce){.blob,.fl,.shake,#toast{animation:none}.bgl,.blob{transition:none}.fl{display:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd43b"/><stop offset="1" stop-color="#5aa9ff"/></linearGradient></defs>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" style="stroke-width:3"/></symbol>
+<symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></symbol>
+<symbol id="i-exit" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h10"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.2"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.2"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></symbol>
+<symbol id="i-snake" viewBox="0 0 64 64"><path d="M18 52C18 62 46 62 46 46C46 32 18 36 18 22C18 11 38 8 44 17" fill="none" stroke="url(#sg)" stroke-width="8" stroke-linecap="round"/><circle cx="47" cy="19" r="7" fill="#ffd43b" stroke="none"/><circle cx="49.5" cy="17" r="1.7" fill="#0f1b3d" stroke="none"/></symbol>
+</svg>
+
+<div class="bgfx" id="bgfx" aria-hidden="true"></div>
+<canvas id="cv" aria-hidden="true"></canvas>
+<div id="toast" role="status" hidden></div>
+
+<main id="authwrap">
+<div class="auth-in">
+  <div class="brand"><span class="mark"><svg class="ic big" aria-hidden="true"><use href="#i-snake"/></svg></span><h1>Learn Python</h1></div>
+  <p class="tagline">Eighteen short lessons that end with you writing real code. The first six are free. Advanced is ₹10 a month and Expert is ₹20.</p>
+  <section class="gcard">
+    <h2 id="at">Create your account</h2>
+    <p class="asub" id="as">Save your progress and XP as you learn.</p>
+    <div class="auth">
+      <input class="field" id="un" aria-label="Username" placeholder="Username" autocomplete="username" autocapitalize="none" spellcheck="false">
+      <input class="field" id="pw" type="password" aria-label="Password" placeholder="Password" autocomplete="new-password">
+      <button class="btn sun block" id="go" type="button">Continue</button>
+    </div>
+    <p class="amsg" id="amsg" role="alert"></p>
+    <p class="or">or</p>
+    <button class="btn glass block" id="guest" type="button">Continue as guest</button>
+    <p class="fine">Accounts are saved only in this browser on this device. Don't reuse a real password.</p>
+    <p class="switch" id="sw3"></p>
+  </section>
+  <div class="sw" id="sw" role="group" aria-label="Background theme"></div>
+</div>
+</main>
+
+<main id="app" hidden>
+<h1 class="sr">Learn Python</h1>
+<div class="wrap">
+  <header class="hud">
+    <div class="hrow">
+      <span class="av" id="av" aria-hidden="true"></span>
+      <div class="me"><b id="who"></b><small id="lvl"></small></div>
+      <span class="xp" id="xp"></span>
+      <button class="btn sun sm" id="sub" type="button" hidden></button>
+      <button class="btn red sm" id="out" type="button" aria-label="Log out" title="Log out"><svg class="ic" aria-hidden="true"><use href="#i-exit"/></svg><span class="btxt">Log out</span></button>
+    </div>
+    <div class="seg" id="seg" role="img" aria-label="Lesson progress"></div>
+  </header>
+  <section class="panel">
+    <p class="prog" id="prog"></p>
+    <nav class="trail" id="trail" aria-label="Lessons"></nav>
+  </section>
+  <article class="sheet" id="lesson" aria-live="polite"></article>
+  <div class="sw" id="sw2" role="group" aria-label="Background theme"></div>
+</div>
+</main>
+<div id="pay" hidden></div>
+<script>
+const L=[
+{t:"Print",h:"Showing text",
+p:"Python runs your instructions one line at a time. <code>print()</code> displays whatever you put inside the brackets. Text goes inside quotes and is called a string.",
+code:'print("Hello, world!")\nprint("I am learning Python")',out:"Hello, world!\nI am learning Python",
+q:'____("Hello, world!")',ask:"Fill the blank with the function that shows text:",ans:["print"],hint:"It is the function used in the example above."},
+{t:"Variables",h:"Storing values",
+p:"A variable is a name that holds a value. Use <code>=</code> to store one. Numbers can be combined with <code>+</code>, <code>-</code>, <code>*</code> (multiply) and <code>/</code> (divide).",
+code:'name = "Ada"\nage = 12\nprint(name)\nprint(age + 1)',out:"Ada\n13",
+q:'price = 4\nqty = 3\ntotal = price ____ qty\nprint(total)   # shows 12',ask:"Which operator makes the total 12?",ans:["*"],hint:"4 times 3."},
+{t:"If / else",h:"Making decisions",
+p:"<code>if</code> runs a block only when a condition is true. Indent the block with 4 spaces. <code>else</code> covers every other case. Compare with <code>==</code> (equal), <code>&gt;</code>, <code>&lt;</code>.",
+code:'temp = 31\nif temp > 30:\n    print("hot")\nelse:\n    print("fine")',out:"hot",
+q:'temp = 18\nif temp > 30:\n    print("hot")\n____:\n    print("fine")',ask:"Which keyword handles the other case? (no colon needed)",ans:["else"],hint:"If not this, then…"},
+{t:"Loops",h:"Repeating things",
+p:"A <code>for</code> loop repeats a block. <code>range(3)</code> gives the numbers 0, 1 and 2. Counting starts at 0 in Python.",
+code:'for i in range(3):\n    print("Round", i)',out:"Round 0\nRound 1\nRound 2",
+q:'for i in ____(3):\n    print(i)   # shows 0, 1, 2',ask:"Which function produces 0, 1, 2?",ans:["range"],hint:"Used in the example above."},
+{t:"Lists",h:"Collecting values",
+p:"A list holds many values in order, written in square brackets. Get an item by position (starting at 0), add one with <code>append</code>, and count them with <code>len</code>.",
+code:'fruits = ["apple", "pear"]\nfruits.append("fig")\nprint(fruits[0])\nprint(len(fruits))',out:"apple\n3",
+q:'fruits = ["apple", "pear"]\nfruits.____("fig")\nprint(len(fruits))   # shows 3',ask:"Which method adds an item to the end?",ans:["append"],hint:"Used in the example above."},
+{t:"Functions",h:"Reusable blocks",
+p:"A function packages code you can run again and again. Define it with <code>def</code>, list inputs in brackets, and send back a result with <code>return</code>.",
+code:'def double(n):\n    return n * 2\n\nprint(double(4))\nprint(double(10))',out:"8\n20",
+q:'____ double(n):\n    return n * 2',ask:"Which keyword defines a function?",ans:["def"],hint:"Short for “define”."}
+];
+L.push(
+{t:"Dicts",h:"Dictionaries: labelled data",
+p:"A dictionary stores <b>key: value</b> pairs in curly braces. Look up a value by its key, change it by assigning, and count the pairs with <code>len</code>.",
+code:'pet = {"name": "Milo", "age": 3}\nprint(pet["name"])\npet["age"] = 4\nprint(pet)',out:"Milo\n{'name': 'Milo', 'age': 4}",
+q:'scores = {"ana": 90}\nscores["ben"] = 85\nprint(____(scores))   # shows 2',ask:"Which function counts the pairs?",ans:["len"],hint:"It also counts list items."},
+{t:"Strings",h:"f-strings and string methods",
+p:"Put <code>f</code> before a string to drop variables straight into it with curly braces. Strings also have methods like <code>.upper()</code>, <code>.split()</code> and <code>.replace()</code>.",
+code:'name = "Ada"\nscore = 9.5\nprint(f"{name} scored {score}")\nprint("python".upper())',out:"Ada scored 9.5\nPYTHON",
+q:'name = "Ada"\nprint(____"Hi {name}")   # shows Hi Ada',ask:"Which single letter goes before the quote?",ans:["f"],hint:"It stands for “formatted”."},
+{t:"Comprehensions",h:"List comprehensions",
+p:"A comprehension builds a list in one line: <code>[expression for item in items]</code>. Add <code>if</code> at the end to filter. <code>%</code> gives the remainder, so <code>n % 2 == 0</code> means even.",
+code:'squares = [n * n for n in range(5)]\nprint(squares)\nevens = [n for n in range(10) if n % 2 == 0]\nprint(evens)',out:"[0, 1, 4, 9, 16]\n[0, 2, 4, 6, 8]",
+q:'doubled = [n * 2 ____ n in [1, 2, 3]]   # [2, 4, 6]',ask:"Which keyword starts the loop part?",ans:["for"],hint:"Same word as a normal loop."},
+{t:"Errors",h:"Handling errors",
+p:"Programs crash on errors, but <code>try</code> / <code>except</code> lets you catch them and carry on. Code in <code>finally</code> always runs, error or not.",
+code:'try:\n    print(10 / 0)\nexcept ZeroDivisionError:\n    print("Cannot divide by zero")\nfinally:\n    print("Done")',out:"Cannot divide by zero\nDone",
+q:'try:\n    int("abc")\n____ ValueError:\n    print("Not a number")',ask:"Which keyword catches the error?",ans:["except"],hint:"The opposite of “try” is to… this."},
+{t:"Classes",h:"Classes and objects",
+p:"A class is a blueprint for objects that bundle data and actions. <code>__init__</code> runs when you create one, and <code>self</code> refers to the object itself.",
+code:'class Dog:\n    def __init__(self, name):\n        self.name = name\n    def bark(self):\n        print(self.name, "says woof")\n\nrex = Dog("Rex")\nrex.bark()',out:"Rex says woof",
+q:'class Dog:\n    def ____(self, name):\n        self.name = name',ask:"Name the special method that sets up a new object (with underscores):",ans:["__init__"],hint:"Two underscores, init, two underscores."},
+{t:"Lambda",h:"Lambdas and sorting",
+p:"A <code>lambda</code> is a tiny one-line function. It pairs well with <code>sorted(..., key=...)</code>, where the key decides what to sort by.",
+code:'words = ["pear", "fig", "banana"]\nprint(sorted(words, key=len))\nadd = lambda a, b: a + b\nprint(add(2, 3))',out:"['fig', 'pear', 'banana']\n5",
+q:'square = ____ n: n * n\nprint(square(4))   # shows 16',ask:"Which keyword creates a one-line function?",ans:["lambda"],hint:"The Greek letter λ."}
+);
+let cur=0,done=[],qd=[],xp=0,user=null,plan=null,tier=null,subAt=0,pwSeen=false;
+const M=[
+{c:'print("Hi" + "!")',q:"What does this show?",o:["Hi!","Hi +!","Error"],a:0},
+{c:'x = 5\nx = x + 2\nprint(x)',q:"What does this show?",o:["5","7","x + 2"],a:1},
+{c:'n = 5\nif n > 5:\n    print("big")\nelse:\n    print("small")',q:"What does this show?",o:["big","small","Nothing"],a:1},
+{c:'for i in range(4):\n    print(i)',q:"How many lines does this print?",o:["3","4","5"],a:1},
+{c:'letters = ["a", "b", "c"]\nprint(letters[1])',q:"What does this show?",o:["a","b","c"],a:1},
+{c:'def add(a, b):\n    return a + b\n\nprint(add(2, 3))',q:"What does this show?",o:["5","23","add"],a:0}
+];
+M.push(
+{c:'d = {"a": 1, "b": 2}\nprint(d["b"])',q:"What does this show?",o:["1","2","b"],a:1},
+{c:'print("a,b,c".split(","))',q:"What does this show?",o:["['a', 'b', 'c']","a,b,c","3"],a:0},
+{c:'print([n + 1 for n in [1, 2, 3]])',q:"What does this show?",o:["[2, 3, 4]","[1, 2, 3]","[3, 4, 5]"],a:0},
+{c:'try:\n    print("A")\nexcept:\n    print("B")\nfinally:\n    print("C")',q:"What does this show?",o:["A then C","B then C","A only"],a:0},
+{c:'class Cat:\n    def __init__(self, n):\n        self.n = n\n\nc = Cat("Tom")\nprint(c.n)',q:"What does this show?",o:["Tom","n","Cat"],a:0},
+{c:'print(sorted([3, 1, 2], reverse=True))',q:"What does this show?",o:["[3, 2, 1]","[1, 2, 3]","[3, 1, 2]"],a:0}
+);
+const fin=i=>done.includes(i)&&qd.includes(i);
+const adv=()=>[0,1,2,3,4,5].every(fin);
+const subd=()=>!!plan&&!!PLANS[plan]&&Date.now()<=subAt+PLANS[plan].days*864e5;
+const canAdv=()=>adv()&&subd();
+const advDone=()=>[6,7,8,9,10,11].every(fin);
+const canExp=()=>canAdv()&&advDone()&&tier==="expert";
+const locked=i=>i>=12?!canExp():i>=6?!canAdv():false;
+const sv={};
+const TK=[
+{task:`Write code that prints the text: Hello, Python!`,hint:`Use print("Hello, Python!") on one line.`,out:`Hello, Python!`,
+ checks:[[/print\s*\(\s*(["'])Hello, Python!\1\s*\)/,`print the exact text Hello, Python! inside quotes.`]]},
+{task:`Create two variables, price = 4 and qty = 3. Then print price multiplied by qty.`,hint:`price = 4, then qty = 3, then print(price * qty).`,out:`12`,
+ checks:[[/price\s*=\s*4\b/,`create price = 4.`],[/qty\s*=\s*3\b/,`create qty = 3.`]],expect:`12`,expectMsg:`print price multiplied by qty so it shows 12.`},
+{task:`Set temp = 18. If temp is greater than 30, print "hot". Otherwise, print "fine".`,hint:`Use if temp > 30: then an indented print, then else: and another indented print.`,out:`fine`,
+ checks:[[/temp\s*=\s*18\b/,`set temp = 18.`],[/if\s+temp\s*>\s*30\s*:/,`add an if line: if temp > 30:`],[/print\s*\(\s*(["'])hot\1\s*\)/,`print "hot" in the if block.`],[/else\s*:/,`add an else: line.`],[/print\s*\(\s*(["'])fine\1\s*\)/,`print "fine" in the else block.`]]},
+{task:`Write a for loop that prints the numbers 0, 1, 2, 3 and 4.`,hint:`for i in range(5): then an indented print(i).`,out:`0\n1\n2\n3\n4`,
+ checks:[[/for\s+\w+\s+in\s+range\s*\(\s*(0\s*,\s*)?5\s*\)\s*:/,`use a for loop over range(5), ending with a colon.`],[/print\s*\(\s*\w+\s*\)/,`print the loop variable inside the loop.`]]},
+{task:`Make a list called fruits holding "apple" and "pear". Append "fig" to it, then print how many items it has.`,hint:`fruits = ["apple", "pear"], then fruits.append("fig"), then print(len(fruits)).`,out:`3`,
+ checks:[[/fruits\s*=\s*\[\s*(["'])apple\1\s*,\s*(["'])pear\2\s*\]/,`create fruits = ["apple", "pear"].`],[/fruits\.append\s*\(\s*(["'])fig\1\s*\)/,`call fruits.append("fig").`],[/print\s*\(\s*len\s*\(\s*fruits\s*\)\s*\)/,`print(len(fruits)).`]]},
+{task:`Define a function double(n) that returns n times 2. Then print double(4).`,hint:`def double(n): then an indented return n * 2, then print(double(4)).`,out:`8`,
+ checks:[[/def\s+double\s*\(\s*n\s*\)\s*:/,`start with def double(n):`],[/return\s+(n\s*\*\s*2|2\s*\*\s*n|n\s*\+\s*n)/,`return n * 2 inside the function.`],[/print\s*\(\s*double\s*\(\s*4\s*\)\s*\)/,`print(double(4)).`]]},
+{task:`Create a dictionary called pet with the keys "name" ("Milo") and "age" (3). Then print the pet's name.`,hint:`pet = {"name": "Milo", "age": 3} then print(pet["name"]).`,out:`Milo`,
+ checks:[[/pet\s*=\s*\{/,`create pet = { ... } with curly braces.`],[/(["'])name\1\s*:\s*(["'])Milo\2/,`add "name": "Milo".`],[/(["'])age\1\s*:\s*3\b/,`add "age": 3.`],[/print\s*\(\s*pet\s*\[\s*(["'])name\1\s*\]\s*\)/,`print(pet["name"]).`]]},
+{task:`Set name = "Ada". Then use an f-string to print: Hi Ada`,hint:`print(f"Hi {name}")`,out:`Hi Ada`,
+ checks:[[/name\s*=\s*(["'])Ada\1/,`set name = "Ada".`],[/print\s*\(\s*f(["'])Hi\s*\{\s*name\s*\}\1\s*\)/,`print an f-string like f"Hi {name}".`]]},
+{task:`Use a list comprehension to build the squares of 0 to 4, and print the list.`,hint:`squares = [n * n for n in range(5)] then print(squares).`,out:`[0, 1, 4, 9, 16]`,
+ checks:[[/\[\s*(\w+)\s*(\*\s*\1|\*\*\s*2)\s+for\s+\1\s+in\s+range\s*\(\s*(0\s*,\s*)?5\s*\)\s*\]/,`write [n * n for n in range(5)] (or n ** 2).`],[/print\s*\(\s*\w+\s*\)|print\s*\(\s*\[/,`print the list.`]]},
+{task:`Try to run int("abc") inside a try block. Catch the ValueError and print: Not a number`,hint:`try: / int("abc") / except ValueError: / print("Not a number"), with indentation.`,out:`Not a number`,
+ checks:[[/try\s*:/,`start with a try: line.`],[/int\s*\(\s*(["'])abc\1\s*\)/,`call int("abc") inside the try.`],[/except\s+ValueError\s*:/,`add except ValueError:`],[/print\s*\(\s*(["'])Not a number\1\s*\)/,`print "Not a number" in the except block.`]]},
+{task:`Write a class Dog whose __init__(self, name) stores self.name. Create rex = Dog("Rex") and print rex.name.`,hint:`class Dog: / def __init__(self, name): / self.name = name, then rex = Dog("Rex") and print(rex.name).`,out:`Rex`,
+ checks:[[/class\s+Dog\s*:/,`start with class Dog:`],[/def\s+__init__\s*\(\s*self\s*,\s*name\s*\)\s*:/,`add def __init__(self, name):`],[/self\.name\s*=\s*name/,`store it with self.name = name.`],[/\w+\s*=\s*Dog\s*\(\s*(["'])Rex\1\s*\)/,`create a dog: rex = Dog("Rex").`],[/print\s*\(\s*\w+\.name\s*\)/,`print rex.name.`]]},
+{task:`Create a lambda called square that squares a number. Then print square(4).`,hint:`square = lambda n: n * n then print(square(4)).`,out:`16`,
+ checks:[[/square\s*=\s*lambda\s+(\w+)\s*:\s*\1\s*(\*\s*\1|\*\*\s*2)/,`write square = lambda n: n * n.`],[/print\s*\(\s*square\s*\(\s*4\s*\)\s*\)/,`print(square(4)).`]]}
+];
+L.push(
+{t:`Modules`,h:`Modules: borrowing code`,
+p:`A module is a file of ready-made code that you bring in with <code>import</code>. Python ships with many, like <code>math</code> and <code>random</code>. Use a dot to reach something inside, or pull one name out with <code>from ... import ...</code>.`,
+code:`import math
+print(math.sqrt(16))
+
+from math import pi
+print(round(pi, 2))`,out:`4.0
+3.14`},
+{t:`Files`,h:`Reading and writing files`,
+p:`Use <code>open()</code> to work with files. A <code>with</code> block closes the file for you. Mode <code>"w"</code> writes (and replaces the old content), <code>"r"</code> reads, and <code>"a"</code> adds to the end.`,
+code:`with open("notes.txt", "w") as f:
+    f.write("hello")
+
+with open("notes.txt") as f:
+    print(f.read())`,out:`hello`},
+{t:`JSON`,h:`JSON: data that travels`,
+p:`JSON is a text format for data, used by almost every website and app. The <code>json</code> module turns a dictionary into JSON text with <code>json.dumps</code> and turns it back with <code>json.loads</code>.`,
+code:`import json
+
+pet = {"name": "Milo", "age": 3}
+text = json.dumps(pet)
+print(text)
+
+back = json.loads(text)
+print(back["name"])`,out:`{"name": "Milo", "age": 3}
+Milo`},
+{t:`Generators`,h:`Generators: one value at a time`,
+p:`A generator hands out values one at a time instead of building a whole list. A function becomes a generator when it uses <code>yield</code> instead of <code>return</code>. Loop over it with <code>for</code>. Here <code>i += 1</code> means "add 1 to i".`,
+code:`def count_up(n):
+    i = 1
+    while i <= n:
+        yield i
+        i += 1
+
+for x in count_up(3):
+    print(x)`,out:`1
+2
+3`},
+{t:`Decorators`,h:`Decorators: wrapping functions`,
+p:`A decorator wraps a function to add behaviour without changing the function itself. It takes a function, defines an inner function that does extra work around it, and returns that inner function. Put <code>@name</code> on the line above a function to apply it.`,
+code:`def shout(func):
+    def wrapper():
+        print("Start")
+        func()
+        print("End")
+    return wrapper
+
+@shout
+def hello():
+    print("Hello")
+
+hello()`,out:`Start
+Hello
+End`},
+{t:`Project`,h:`Final project: score report`,
+p:`Time to put it all together. A small program can combine a function, a list and an f-string. Below, a function adds up prices with <code>sum()</code>. Your task is a score report that works out an average with <code>sum()</code> and <code>len()</code>.`,
+code:`def total(prices):
+    return sum(prices)
+
+result = total([5, 10, 20])
+print(f"Total: {result}")`,out:`Total: 35`}
+);
+M.push(
+{c:`import math
+print(math.floor(2.9))`,q:`What does this show?`,o:[`2`,`3`,`2.9`],a:0},
+{c:`with open("log.txt", "a") as f:
+    f.write("new line")`,q:`What does mode "a" do?`,o:[`Adds to the end of the file`,`Erases the file first`,`Only reads the file`],a:0},
+{c:`import json
+print(json.loads('{"a": 1}')["a"])`,q:`What does this show?`,o:[`1`,`a`,`{"a": 1}`],a:0},
+{c:`def three():
+    yield 1
+    yield 2
+    yield 3
+
+print(sum(three()))`,q:`What does this show?`,o:[`6`,`3`,`1`],a:0},
+{c:`def twice(func):
+    def wrapper():
+        func()
+        func()
+    return wrapper
+
+@twice
+def hi():
+    print("hi")
+
+hi()`,q:`How many times is hi printed?`,o:[`1`,`2`,`0`],a:1},
+{c:`def average(nums):
+    return sum(nums) / len(nums)
+
+print(average([2, 4, 6]))`,q:`What does this show?`,o:[`4.0`,`12`,`4`],a:0}
+);
+TK.push(
+{task:`Import the math module. Then print the square root of 81 using sqrt.`,hint:`import math, then print(math.sqrt(81)).`,out:`9.0`,
+ checks:[[/import\s+math\b|from\s+math\s+import\s+sqrt\b/,`bring in the math module with import math.`],[/print\s*\(\s*(math\.)?sqrt\s*\(\s*81\s*\)\s*\)/,`print the square root of 81 with sqrt.`]]},
+{task:`Write the text hello into a file called notes.txt using a with block. Then open the file again to read it, and print what is inside.`,hint:`with open("notes.txt", "w") as f: then f.write("hello"). Then a second with open("notes.txt") as f: and print(f.read()).`,out:`hello`,
+ checks:[[/with\s+open\s*\(\s*(["'])notes\.txt\1\s*,\s*(["'])w\2\s*\)\s+as\s+\w+\s*:/,`start with: with open("notes.txt", "w") as f:`],[/\.write\s*\(\s*(["'])hello\1\s*\)/,`write the text with f.write("hello").`],[/with\s+open[\s\S]*with\s+open/,`open the file a second time to read it.`],[/\.read\s*\(\s*\)/,`read the text back with f.read().`],[/print\s*\(/,`print what you read.`]]},
+{task:`Import json. Turn the dictionary d = {"x": 1} into JSON text with json.dumps, and print it.`,hint:`import json, then d = {"x": 1}, then print(json.dumps(d)).`,out:`{"x": 1}`,
+ checks:[[/import\s+json\b/,`add import json.`],[/d\s*=\s*\{\s*(["'])x\1\s*:\s*1\s*\}/,`create d = {"x": 1}.`],[/json\.dumps\s*\(\s*d\s*\)/,`call json.dumps(d).`],[/print\s*\(/,`print the result.`]]},
+{task:`Write a generator function countdown() that yields 3, then 2, then 1. Then loop over it with for and print each value.`,hint:`def countdown(): with yield 3, yield 2, yield 1. Then for n in countdown(): and print(n).`,out:`3
+2
+1`,
+ checks:[[/def\s+countdown\s*\(\s*\)\s*:/,`start with def countdown():`],[/yield\s+3\b[\s\S]*yield\s+2\b[\s\S]*yield\s+1\b|for\s+\w+\s+in\s+(\[\s*3\s*,\s*2\s*,\s*1\s*\]|range\s*\(\s*3\s*,\s*0\s*,\s*-1\s*\))\s*:[\s\S]*yield\s+\w+/,`use yield to produce 3, then 2, then 1.`],[/for\s+\w+\s+in\s+countdown\s*\(\s*\)\s*:/,`loop with for n in countdown():`],[/print\s*\(\s*\w+\s*\)/,`print the loop variable.`]]},
+{task:`Write a decorator called shout. Its wrapper prints "Start", calls the function, then prints "End". Apply it with @shout to a function hello() that prints "Hello", then call hello().`,hint:`def shout(func): with an inner def wrapper(): that prints Start, calls func(), prints End. Return wrapper. Then @shout above def hello(), and call hello().`,out:`Start
+Hello
+End`,
+ checks:[[/def\s+shout\s*\(\s*\w+\s*\)\s*:/,`define def shout(func):`],[/def\s+shout[\s\S]*?\n[ \t]+def\s+\w+\s*\(/,`define an inner function inside shout.`],[/print\s*\(\s*(["'])Start\1\s*\)/,`print "Start" in the wrapper.`],[/print\s*\(\s*(["'])End\1\s*\)/,`print "End" in the wrapper.`],[/return\s+\w+/,`return the wrapper function from shout.`],[/@shout\s*\n\s*def\s+hello\s*\(\s*\)\s*:/,`put @shout on the line above def hello():`],[/print\s*\(\s*(["'])Hello\1\s*\)/,`print "Hello" inside hello().`],[/^\s*hello\s*\(\s*\)\s*$/m,`call hello() at the end.`]]},
+{task:`Final project. Write a function average(scores) that returns the sum of the list divided by its length. Call it with [80, 90, 100] and print the result in an f-string, so it shows: Average: 90.0`,hint:`def average(scores): then return sum(scores) / len(scores). Then result = average([80, 90, 100]) and print(f"Average: {result}").`,out:`Average: 90.0`,
+ checks:[[/def\s+average\s*\(\s*scores\s*\)\s*:/,`define def average(scores):`],[/sum\s*\(\s*scores\s*\)/,`add up the list with sum(scores).`],[/\/\s*len\s*\(\s*scores\s*\)/,`divide by len(scores).`],[/return\s+\w/,`return the result from the function.`],[/average\s*\(\s*\[\s*80\s*,\s*90\s*,\s*100\s*\]\s*\)/,`call average([80, 90, 100]).`],[/print\s*\(\s*f(["'])Average:\s*\{[^}]+\}\1\s*\)/,`print an f-string like f"Average: {result}".`]]}
+);
+
+const LV=["Beginner","Coder","Scripter","Pythonista","Wizard"];
+const SHORT=["Print","Variables","If / else","Loops","Lists","Functions","Dicts","Strings","List comp","Errors","Classes","Lambda","Modules","Files","JSON","Generators","Decorators","Project"];
+const $=id=>document.getElementById(id);
+function el(tag,txt,cls){const e=document.createElement(tag);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e}
+function H(tag,html,cls){const e=document.createElement(tag);e.innerHTML=html;if(cls)e.className=cls;return e}
+const ic=(n,c)=>'<svg class="ic'+(c?" "+c:"")+'" aria-hidden="true"><use href="#i-'+n+'"/></svg>';
+const reduced=()=>matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* ---------- syntax colours ---------- */
+const KW=/^(def|class|return|if|else|elif|for|in|while|try|except|finally|import|from|lambda|as|and|or|not|True|False|None|with|pass|break|continue|raise|self)$/;
+const BI=/^(print|len|range|sorted|int|str|float|list|dict|input|sum|max|min)$/;
+const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function hl(code){
+  const re=/(#[^\n]*)|(f?"(?:[^"\\\n]|\\.)*"|f?'(?:[^'\\\n]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)/g;
+  let out="",last=0,m;
+  while((m=re.exec(code))){
+    out+=esc(code.slice(last,m.index));
+    const t=m[0];
+    if(m[1])out+='<span class="c">'+esc(t)+'</span>';
+    else if(m[2])out+='<span class="s">'+esc(t)+'</span>';
+    else if(m[3])out+='<span class="n">'+t+'</span>';
+    else{const nx=code[m.index+t.length];
+      if(KW.test(t))out+='<span class="k">'+t+'</span>';
+      else if(nx==="("&&BI.test(t))out+='<span class="b">'+t+'</span>';
+      else if(nx==="(")out+='<span class="f">'+t+'</span>';
+      else out+=esc(t)}
+    last=re.lastIndex}
+  return out+esc(code.slice(last))}
+
+/* ---------- feedback: confetti and toast ---------- */
+let parts=[],raf=0;
+function confetti(n){
+  if(reduced())return;
+  const cv=$("cv"),cx=cv.getContext("2d");cv.width=innerWidth;cv.height=innerHeight;
+  const cols=["#ffd43b","#5aa9ff","#ff8fab","#9be28a","#ffffff","#ffbe7a"];
+  for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*90,y:innerHeight*.38,vx:(Math.random()-.5)*13,vy:-Math.random()*12-3,w:6+Math.random()*6,h:4+Math.random()*5,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[i%cols.length],life:0});
+  if(!raf)raf=requestAnimationFrame(tick)}
+function tick(){
+  const cv=$("cv"),cx=cv.getContext("2d");cx.clearRect(0,0,cv.width,cv.height);
+  parts=parts.filter(p=>p.life<110&&p.y<cv.height+20);
+  parts.forEach(p=>{p.life++;p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.globalAlpha=Math.min(1,(110-p.life)/30);cx.fillStyle=p.c;cx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cx.restore()});
+  if(parts.length)raf=requestAnimationFrame(tick);else{cx.clearRect(0,0,cv.width,cv.height);raf=0}}
+let toastT=0;
+function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;e.style.animation="none";void e.offsetWidth;e.style.animation="";clearTimeout(toastT);toastT=setTimeout(()=>{e.hidden=true},1800)}
+function gain(n,big){xp+=n;save();confetti(big?150:40);toast("+"+n+" XP");top2()}
+
+function save(){if(!user)return;try{const k="py-"+user+"-";localStorage.setItem(k+"done",JSON.stringify(done));localStorage.setItem(k+"cur",cur);localStorage.setItem(k+"qd",JSON.stringify(qd));localStorage.setItem(k+"xp",xp)}catch(e){}}
+
+/* ---------- one lesson ---------- */
+function win(fn,body){
+  const w=el("div",null,"win"),h=el("div",null,"wh"),d=el("span",null,"dots");
+  d.append(el("i"),el("i"),el("i"));h.append(d,el("span",fn,"fn"));w.append(h);
+  if(body!=null){const p=el("pre");p.innerHTML=body;w.append(p)}
+  return w}
+function sHead(n,title,status){
+  const h=el("div",null,"sh"),bd=el("span",String(n),"bd");h.append(bd,el("h3",title));
+  const st=status?el("span",null,"st"):null;if(st)h.append(st);
+  return {h,bd,st,n}}
+function setSt(o,ok){if(!o.st)return;o.st.className="st"+(ok?" ok":"");o.st.innerHTML=ok?ic("check")+"Done":"To do";o.bd.className="bd"+(ok?" ok":"");o.bd.innerHTML=ok?ic("check"):String(o.n)}
+function goto(i){cur=i;save();render();scrollTo(0,0)}
+function note(box,kind,icon,text){box.hidden=false;box.className="note"+(kind?" "+kind:"");box.innerHTML=ic(icon)+"<span></span>";box.lastChild.textContent=text}
+
+function render(){
+  const l=L[cur],T=TK[cur],m=M[cur],box=$("lesson");box.textContent="";
+  const lvName=cur>=12?"Expert":cur>=6?"Advanced":"Beginner",lvCls=cur>=12?" exp":cur>=6?" adv":"";
+
+  const head=el("header",null,"lh"),meta=el("div",null,"meta");
+  meta.append(el("span",lvName,"chip"+lvCls),el("span","Lesson "+(cur+1)+" of "+L.length,"chip"));
+  const lead=el("p",null,"lead");lead.innerHTML=l.p;
+  head.append(meta,el("h2",l.h),lead);box.append(head);
+
+  /* 1 run the example */
+  const s1=el("section",null,"stage"),h1=sHead(1,"Run the example",false);
+  const ex=win("example.py",hl(l.code)),runBtn=H("button",ic("play","fill")+"Run","run");runBtn.type="button";
+  ex.querySelector(".wh").append(runBtn);
+  const out1=win("output",null);out1.classList.add("out");out1.hidden=true;const op=el("pre");out1.append(op);
+  runBtn.onclick=()=>{
+    runBtn.disabled=true;out1.hidden=false;op.innerHTML='<span class="pr">$ python example.py</span>';
+    const ls=l.out.split("\n");let i=0;
+    const t=setInterval(()=>{
+      if(!op.isConnected){clearInterval(t);return}
+      op.append(document.createTextNode("\n"+ls[i++]));
+      if(i>=ls.length){clearInterval(t);runBtn.disabled=false;runBtn.innerHTML=ic("play","fill")+"Run again"}
+    },420)};
+  s1.append(h1.h,ex,out1);box.append(s1);
+
+  /* 2 quick check */
+  const s2=el("section",null,"stage"),h2=sHead(2,"Quick check",true);
+  const qn=el("div");qn.hidden=true;
+  const opts=el("div",null,"opts");
+  const q=el("p",m.q,"q");
+  s2.append(h2.h,win("predict.py",hl(m.c)),q,opts,qn);
+  m.o.forEach((o,i)=>{
+    const b=el("button",null,"opt");b.type="button";b.append(el("span","ABC"[i],"lt"),el("span",o,"tx"));
+    if(qd.includes(cur)){b.disabled=true;if(i===m.a)b.classList.add("right")}
+    b.onclick=()=>{
+      if(qd.includes(cur))return;
+      if(i===m.a){
+        b.classList.add("right");opts.querySelectorAll(".opt").forEach(x=>x.disabled=true);
+        qd.push(cur);gain(10,fin(cur));
+        note(qn,"ok","check",done.includes(cur)?"Right. Lesson complete."+advMsg():"Right. +10 XP. Now write the code below.");upd()
+      }else{
+        b.classList.add("wrong");b.disabled=true;b.classList.remove("shake");void b.offsetWidth;b.classList.add("shake");
+        note(qn,"bad","alert","Not that one. Read the code again and trace it line by line.")}};
+    opts.append(b)});
+  if(qd.includes(cur))note(qn,"ok","check","Already solved.");
+  box.append(s2);
+
+  /* 3 write the code */
+  const s3=el("section",null,"stage"),h3=sHead(3,"Write the code",true);
+  const task=el("p",T.task,"task");
+  const ed=win("your_code.py",null),body=el("div",null,"ed"),gut=el("pre",null,"gut"),ta=el("textarea");
+  gut.setAttribute("aria-hidden","true");
+  ta.id="code";ta.setAttribute("aria-label","Your code");ta.setAttribute("wrap","off");ta.autocapitalize="none";ta.autocomplete="off";ta.spellcheck=false;
+  ta.placeholder="# Write your code here";ta.value=sv[cur]||"";
+  body.append(gut,ta);ed.append(body);
+  const fit=()=>{const n=Math.max(6,ta.value.split("\n").length);gut.textContent=Array.from({length:n},(_,i)=>i+1).join("\n");ta.style.height="auto";ta.style.height=Math.max(184,n*26+28)+"px"};
+  const ins=t=>{ta.setRangeText(t,ta.selectionStart,ta.selectionEnd,"end");sv[cur]=ta.value;fit()};
+  ta.oninput=()=>{sv[cur]=ta.value;fit()};
+  ta.onkeydown=e=>{
+    if(e.key==="Tab"&&!e.shiftKey){e.preventDefault();ins("    ")}
+    else if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){
+      const before=ta.value.slice(0,ta.selectionStart),line=before.slice(before.lastIndexOf("\n")+1);
+      e.preventDefault();ins("\n"+line.match(/^ */)[0]+(/:\s*$/.test(line)?"    ":""))}};
+  const acts=el("div",null,"acts"),chk=H("button",ic("play","fill")+"Run my code","btn sun"),hint=el("button","Show hint","btn line");
+  chk.type="button";chk.id="runcode";hint.type="button";acts.append(chk,hint);
+  const out3=win("output",null);out3.classList.add("out");out3.hidden=true;const o3=el("pre");out3.append(o3);
+  const mn=el("div");mn.hidden=true;
+  s3.append(h3.h,task,ed,acts,out3,mn);box.append(s3);
+  if(done.includes(cur))note(mn,"ok","check","Already completed.");
+  const fail=t=>{out3.hidden=true;note(mn,"bad","alert",t);ed.classList.remove("shake");void ed.offsetWidth;ed.classList.add("shake")};
+  chk.onclick=()=>{
+    if(!ta.value.trim())return fail("Write some code first.");
+    const code=ta.value.replace(/#.*/g,""),miss=T.checks.find(c=>!c[0].test(code));
+    if(miss)return fail("Not yet: "+miss[1]);
+    if(T.expect){let o;try{o=miniRun(code)}catch(e){return fail("Not yet: "+e.message)}
+      if(o!==T.expect)return fail("Not yet: "+T.expectMsg+(o?" Your code shows: "+o.split("\n").join(" / "):" Your code shows nothing, so add a print(...)."))}
+    out3.hidden=false;o3.innerHTML='<span class="pr">$ python your_code.py</span>';o3.append(document.createTextNode("\n"+T.out));
+    if(!done.includes(cur)){done.push(cur);gain(10,fin(cur))}
+    note(mn,"ok","check",qd.includes(cur)?"Correct. Lesson complete."+advMsg():"Correct. +10 XP. Now answer the quick check above to finish the lesson.");
+    upd()};
+  hint.onclick=()=>note(mn,"","info","Hint: "+T.hint);
+
+  /* finish */
+  const bn=el("div");bn.hidden=true;box.append(bn);
+  const nv=el("div",null,"nav2"),prev=el("button","Back","btn line"),next=el("button","Next lesson","btn sun");
+  prev.id="prev";next.id="next";prev.type="button";next.type="button";prev.disabled=cur===0;
+  prev.onclick=()=>{if(cur>0)goto(cur-1)};
+  next.onclick=()=>{
+    if(cur<L.length-1){
+      if(locked(cur+1)){if(cur+1===6){if(adv())showPaywall();else toast("Finish all 6 beginner lessons first.")}else if(advDone()&&subd())showPaywall("expert");else toast("Finish all 6 Advanced lessons to unlock Expert.");return}
+      goto(cur+1)}else scrollTo(0,0)};
+  nv.append(prev,next);box.append(nv);
+
+  function upd(){setSt(h2,qd.includes(cur));setSt(h3,done.includes(cur));if(fin(cur))note(bn,"ok","check","Lesson complete. Both parts are done.");else bn.hidden=true}
+  upd();top2();
+  requestAnimationFrame(fit)}
+
+/* ---------- header, progress and lesson trail ---------- */
+function top2(){
+  if(!user)return;
+  const idx=Math.min(4,Math.floor(xp/70));
+  $("who").textContent=user;$("lvl").textContent=LV[idx];$("xp").innerHTML=ic("bolt","fill")+xp+" XP";
+  const av=$("av");av.textContent=user.charAt(0).toUpperCase();
+  let h=0;for(const ch of user)h=(h*31+ch.charCodeAt(0))%360;av.style.background="hsl("+h+" 85% 66%)";
+  const sb=$("sub");sb.hidden=!adv();sb.innerHTML=ic("crown","fill")+'<span>'+(subd()?TIERS[tier].n:"Subscribe")+'</span>';
+  const seg=$("seg");
+  if(seg.children.length!==L.length){seg.textContent="";L.forEach((_,i)=>{const s=el("i");if(i===6||i===12)s.className="gap";s.append(el("b"));seg.append(s)})}
+  L.forEach((_,i)=>{seg.children[i].firstChild.style.width=((done.includes(i)?1:0)+(qd.includes(i)?1:0))*50+"%"});
+  const n6=[0,1,2,3,4,5].filter(fin).length;
+  const nA=[6,7,8,9,10,11].filter(fin).length;
+  $("prog").textContent=L.every((_,i)=>fin(i))?"All 18 lessons complete. You can build real Python programs now.":!adv()?n6+" of 6 beginner lessons complete. Finish them to unlock Advanced.":!subd()?"Beginner level complete. Subscribe to unlock Advanced or Expert.":!advDone()?nA+" of 6 Advanced lessons complete. Finish them to unlock Expert.":!canExp()?"Advanced complete. Upgrade to Expert to unlock the last 6 lessons.":L.filter((_,i)=>fin(i)).length+" of "+L.length+" lessons complete.";
+  const tr=$("trail");tr.textContent="";
+  L.forEach((l,i)=>{
+    if(i===6||i===12){const g=el("span",null,"gate");g.innerHTML=ic("crown","fill")+(i===6?"Advanced":"Expert");tr.append(g)}
+    else if(i>0)tr.append(el("i",null,"ln"+(fin(i-1)?" on":"")));
+    const lock=locked(i),isDone=fin(i),part=done.includes(i)||qd.includes(i);
+    const b=el("button",null,"node"+(isDone?" done":part?" half":"")+(i===cur?" cur":"")+(lock?" lock":""));
+    b.type="button";b.setAttribute("aria-label","Lesson "+(i+1)+": "+l.t+(isDone?", complete":lock?", locked":""));
+    if(i===cur)b.setAttribute("aria-current","step");
+    const d=el("span",null,"dot");d.innerHTML=isDone?ic("check"):lock?ic("lock"):String(i+1);
+    b.append(d,el("span",SHORT[i],"lbl"));
+    b.onclick=()=>{if(lock){if(i>=12){if(advDone()&&subd())showPaywall("expert");else toast("Finish all 6 Advanced lessons to unlock Expert.")}else if(adv())showPaywall();else toast("Finish the 6 beginner lessons first.");return}goto(i)};
+    tr.append(b)});
+  const c=tr.querySelector(".cur");if(c)tr.scrollLeft=c.offsetLeft-tr.clientWidth/2+c.offsetWidth/2;
+  const nx=$("next");if(nx)nx.textContent=cur===L.length-1?"Finish":(cur===5&&adv()&&!subd()?"Subscribe to continue":"Next lesson")}
+
+/* ---------- tiny python runner for the price lesson ---------- */
+function ev(e,vars){
+  e=e.trim();
+  const x=e.replace(/[A-Za-z_]\w*/g,n=>{if(!(n in vars))throw new Error("name '"+n+"' is not defined yet.");return "("+vars[n]+")"});
+  if(!/^[\d\s+\-*\/%().]+$/.test(x)||x.includes("//"))throw new Error("I can only check numbers with + - * / here: "+e);
+  let v;try{v=Function('"use strict";return ('+x+')')()}catch(err){throw new Error("that expression isn't valid: "+e)}
+  if(typeof v!=="number"||!isFinite(v))throw new Error("that doesn't make a number: "+e);
+  return v}
+function miniRun(code){
+  const vars={},out=[];
+  for(const raw of code.split("\n")){const ln=raw.trim();if(!ln)continue;let m;
+    if((m=ln.match(/^print\s*\((.*)\)$/))){out.push(String(ev(m[1],vars)));continue}
+    if((m=ln.match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/))){vars[m[1]]=ev(m[2],vars);continue}
+    throw new Error("I couldn't read this line: "+ln)}
+  return out.join("\n")}
+
+/* ---------- subscription ---------- */
+let subRef=null,coupon=null,pwSeen2=false,selPlan="year",selTier="advanced",payFrom=null;
+const COUPONS={"0af21f34a355e0fa855dcd6467304fed822f84991a398e2577c52e032365ac5e":{label:"Free subscription",off:100}};
+async function sha(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+async function checkCoupon(code){try{return COUPONS[await sha("py-coupon:"+code)]||null}catch(e){return null}}
+const savePw=()=>{try{localStorage.setItem("py-"+user+"-pw","1")}catch(e){}};
+const savePw2=()=>{try{localStorage.setItem("py-"+user+"-pw2","1")}catch(e){}};
+const UPI="notgwsaksham@fam";
+const PLANS={month:{n:"Monthly",days:30,per:"month"},year:{n:"Yearly",days:365,per:"year"}};
+const TIERS={advanced:{n:"Advanced",m:10,y:100},expert:{n:"Expert",m:20,y:200}};
+const price=(t,p)=>TIERS[t][p==="month"?"m":"y"];
+const FEATS={
+  advanced:["Dictionaries, f-strings and list comprehensions","Error handling, classes and lambdas"],
+  expert:["Everything in Advanced","Modules, files and JSON","Generators and decorators","A final project to finish with"]};
+const QRS={"advanced-month":"data:image/png;base64,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","advanced-year":"data:image/png;base64,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","expert-month":"data:image/png;base64,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","expert-year":"data:image/png;base64,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"};
+const upiLink=(t,p)=>"upi://pay?pa="+UPI+"&pn=Learn%20Python&am="+price(t,p)+".00&cu=INR&tn=Learn%20Python%20"+TIERS[t].n+"%20"+PLANS[p].n;
+function setPlan(p,ref,t){
+  plan=p;tier=p?(t||"advanced"):null;subRef=p&&ref==="coupon"?"coupon":null;subAt=p?Date.now():0;
+  try{const k="py-"+user+"-";
+    if(p){localStorage.setItem(k+"sub",p);localStorage.setItem(k+"tier",tier);localStorage.setItem(k+"subat",subAt);if(ref)localStorage.setItem(k+"ref",ref);else localStorage.removeItem(k+"ref")}
+    else["sub","tier","subat","ref"].forEach(x=>localStorage.removeItem(k+x))}catch(e){}
+  top2()}
+function advMsg(){
+  if(cur>=12&&L.every((_,i)=>fin(i)))return " You finished every lesson.";
+  if(cur>=6&&cur<12&&advDone()){
+    if(canExp())return " Advanced complete. Expert lessons unlocked.";
+    if(!pwSeen2){pwSeen2=true;savePw2();setTimeout(()=>showPaywall("expert"),1200)}
+    return " Advanced complete. Upgrade to Expert to keep going."}
+  if(!(cur<6&&adv()))return "";
+  if(subd())return " Advanced lessons unlocked.";
+  if(!pwSeen){pwSeen=true;savePw();setTimeout(showPaywall,1200)}
+  return " Beginner level complete. Subscribe to unlock Advanced."}
+const payKey=e=>{if(e.key==="Escape")closePay()};
+function closePay(){coupon=null;$("pay").hidden=true;document.removeEventListener("keydown",payKey);if(payFrom&&payFrom.focus)try{payFrom.focus()}catch(e){}}
+function showPaywall(arg){
+  if(!user)return;
+  const o=$("pay");if(o.hidden)payFrom=document.activeElement;
+  const upg=arg==="expert"&&subd()&&tier==="advanced";
+  if(arg==="expert")selTier="expert";
+  o.textContent="";o.hidden=false;o.onclick=e=>{if(e.target===o)closePay()};
+  document.removeEventListener("keydown",payKey);document.addEventListener("keydown",payKey);
+  const box=el("div",null,"pbox");box.setAttribute("role","dialog");box.setAttribute("aria-modal","true");box.setAttribute("aria-labelledby","payh");
+  const h=el("h2");h.id="payh";box.append(h);
+  const later=t=>{const b=el("button",t,"textbtn");b.type="button";b.onclick=closePay;return b};
+  if(subd()&&!upg){
+    h.textContent="Your "+TIERS[tier].n+" plan";
+    box.append(el("p",PLANS[plan].n+" plan, ₹"+price(tier,plan)+"/"+PLANS[plan].per+". Active until "+new Date(subAt+PLANS[plan].days*864e5).toLocaleDateString()+". "+(tier==="expert"?"Advanced and Expert lessons are unlocked.":"Advanced lessons are unlocked.")+(subRef==="coupon"?" Activated with a coupon.":""),"sub"));
+    if(tier==="advanced"){const up=el("button","Upgrade to Expert","btn sun block");up.type="button";up.onclick=()=>showPaywall("expert");box.append(up)}
+    const c=el("button","Cancel subscription","btn glass block");c.type="button";let sure=false;
+    c.onclick=()=>{if(!sure){sure=true;c.textContent="Tap again to confirm";return}setPlan(null);if(cur>=6){cur=5;save();render()}showPaywall()};
+    box.append(c,later("Close"));
+  }else{
+    h.textContent=upg?"Upgrade to Expert":adv()?"Beginner level complete":"Unlock Advanced and Expert";
+    box.append(el("p",upg?"You have Advanced. Expert adds modules, files, JSON, generators, decorators and a final project.":"Choose what to unlock. Expert includes everything in Advanced.","sub"));
+    const tt=el("div",null,"tiers"),ul=el("ul",null,"feats"),grid=el("div",null,"plans"),cta=el("button",null,"btn sun block");
+    tt.setAttribute("role","radiogroup");tt.setAttribute("aria-label","Level");grid.setAttribute("role","radiogroup");grid.setAttribute("aria-label","Plan");cta.type="button";
+    ["advanced","expert"].forEach(t=>{const b=el("button",TIERS[t].n);b.type="button";b.dataset.t=t;b.setAttribute("role","radio");b.onclick=()=>{selTier=t;paint()};tt.append(b)});
+    [["month","Monthly","per month",""],["year","Yearly","per year","Save 17%"]].forEach(([id,n,per,tag])=>{
+      const b=el("button",null,"pl");b.type="button";b.dataset.id=id;b.setAttribute("role","radio");
+      if(tag)b.append(el("span",tag,"tg"));
+      b.append(H("span",ic("check"),"rd"),el("span",n,"pn"),el("span","","pp"),el("span",per,"pe"));
+      b.onclick=()=>{selPlan=id;paint()};grid.append(b)});
+    const cp=el("div",null,"cpn"),ct=el("button","Have a coupon?","textbtn"),rowc=el("div",null,"cprow"),ci=el("input",null,"field"),ca=el("button","Apply","btn glass sm"),cm=el("p");
+    const again=()=>showPaywall(upg?"expert":undefined);
+    ct.type="button";ca.type="button";rowc.hidden=true;ci.id="coupon";ci.placeholder="Coupon code";ci.autocapitalize="none";ci.autocomplete="off";ci.spellcheck=false;ci.setAttribute("aria-label","Coupon code");
+    rowc.append(ci,ca);
+    const applyNow=async()=>{
+      const code=ci.value.trim().toLowerCase();
+      if(!code){cm.className="amsg";cm.textContent="Enter a coupon code.";return}
+      const r=await checkCoupon(code);
+      if(r){coupon=r;again()}else{cm.className="amsg";cm.textContent="That coupon code isn't valid."}};
+    ca.onclick=applyNow;ci.onkeydown=e=>{if(e.key==="Enter")applyNow()};
+    if(coupon){ct.textContent="Remove coupon";ct.onclick=()=>{coupon=null;again()};cm.className="cpok";cm.innerHTML=ic("check");cm.append(el("span",coupon.label+" applied. Your plan is ₹0."))}
+    else ct.onclick=()=>{rowc.hidden=!rowc.hidden;if(!rowc.hidden)ci.focus()};
+    cp.append(ct,rowc,cm);
+    const paint=()=>{
+      [...tt.children].forEach(b=>b.setAttribute("aria-checked",b.dataset.t===selTier));
+      ul.textContent="";FEATS[selTier].forEach(t=>{const li=H("li",ic("check")+"<span></span>");li.lastChild.textContent=t;ul.append(li)});
+      [...grid.children].forEach(b=>{const id=b.dataset.id;b.setAttribute("aria-checked",id===selPlan);b.querySelector(".pp").innerHTML=coupon?"<s>₹"+price(selTier,id)+"</s>₹0":"₹"+price(selTier,id)});
+      cta.textContent=coupon?"Activate free "+TIERS[selTier].n+" "+PLANS[selPlan].n.toLowerCase()+" plan":"Pay ₹"+price(selTier,selPlan)+" with UPI"};
+    paint();
+    cta.onclick=()=>{if(coupon){setPlan(selPlan,"coupon",selTier);paySuccess(box,selTier)}else payStep(selPlan,selTier,box)};
+    box.append(...(upg?[]:[tt]),ul,grid,cp,cta,later(upg?"Not now":"Maybe later"),
+      el("p",coupon?"No payment is needed with this coupon.":upg?"You pay by UPI. Upgrading starts a new Expert period from today.":"You pay by UPI. The next screen shows a QR code with the amount already filled in.","fine"));
+  }
+  o.append(box);const fb=box.querySelector(".pl[aria-checked=true],button");if(fb)fb.focus()}
+function paySuccess(box,t){
+  confetti(160);box.textContent="";const h2=el("h2","You're subscribed");h2.id="payh";
+  const toExp=t==="expert"&&advDone();
+  const go=el("button",toExp?"Start Expert lessons":"Start Advanced lessons","btn sun block");go.type="button";
+  go.onclick=()=>{cur=toExp?12:6;save();render();scrollTo(0,0);closePay()};
+  const stay=el("button","Stay here","textbtn");stay.type="button";stay.onclick=closePay;
+  box.append(h2,el("p",t==="expert"?"Thanks! The Advanced and Expert lessons are unlocked.":"Thanks! The Advanced lessons are unlocked.","sub"),go,stay);go.focus()}
+function payStep(id,t,box){
+  const P=PLANS[id],pr=price(t,id),T=TIERS[t];box.textContent="";
+  const h=el("h2","Scan to pay");h.id="payh";
+  const amt=el("div",null,"amt");amt.append(el("b","₹"+pr),el("span",T.n+" plan, "+P.n.toLowerCase()+". "+P.days+" days of access"));
+  const qw=el("div",null,"qrw"),im=document.createElement("img");im.src=QRS[t+"-"+id];im.alt="UPI QR code to pay ₹"+pr+" to "+UPI;qw.append(im);
+  const row=el("div",null,"upirow"),cp=H("button",ic("copy")+"Copy","btn glass sm");cp.type="button";
+  cp.onclick=async()=>{try{await navigator.clipboard.writeText(UPI);cp.innerHTML=ic("check")+"Copied"}catch(e){cp.textContent="Copy by hand"}setTimeout(()=>{cp.innerHTML=ic("copy")+"Copy"},1800)};
+  row.append(el("code",UPI),cp);
+  const app=el("a","Open in UPI app (on a phone)","btn glass block lnk");app.href=upiLink(t,id);
+  const st=el("ol",null,"steps");["Scan the QR with any UPI app, or pay to the UPI ID above. ₹"+pr+" is filled in.","After paying, find the 12-digit UPI reference number (UTR) in the payment details.","Enter it below to unlock "+T.n+"."].forEach(x=>st.append(el("li",x)));
+  const inp=el("input",null,"field");inp.id="utr";inp.inputMode="numeric";inp.maxLength=12;inp.placeholder="12-digit UPI reference number";inp.setAttribute("aria-label","UPI reference number");inp.autocomplete="off";
+  const msg=el("p",null,"amsg");msg.setAttribute("role","alert");
+  const ok=el("button","I've paid ₹"+pr+", unlock "+T.n,"btn sun block"),back=el("button","Back to plans","textbtn");ok.type="button";back.type="button";
+  const go=()=>{const v=inp.value.replace(/\s/g,"");if(!/^\d{12}$/.test(v)){msg.textContent="Enter the 12-digit number from your payment app (digits only).";return}setPlan(id,v,t);paySuccess(box,t)};
+  ok.onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
+  back.onclick=()=>showPaywall(subd()&&tier==="advanced"&&t==="expert"?"expert":undefined);
+  box.append(h,amt,qw,row,app,st,inp,msg,ok,back)}
+
+/* ---------- accounts (this browser only) ---------- */
+let memUsers={},mode="signup";
+const getUsers=()=>{try{return JSON.parse(localStorage.getItem("py-users")||"{}")}catch(e){return memUsers}};
+const setUsers=u=>{memUsers=u;try{localStorage.setItem("py-users",JSON.stringify(u))}catch(e){}};
+async function hash(u,p){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("py:"+u+":"+p));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){return btoa(unescape(encodeURIComponent(u+":"+p)))}}
+function load(){cur=0;done=[];qd=[];xp=0;plan=null;tier=null;subRef=null;subAt=0;pwSeen=false;pwSeen2=false;try{const k="py-"+user+"-";done=JSON.parse(localStorage.getItem(k+"done")||"[]");qd=JSON.parse(localStorage.getItem(k+"qd")||"[]");xp=+localStorage.getItem(k+"xp")||0;cur=+localStorage.getItem(k+"cur")||0;plan=localStorage.getItem(k+"sub")||null;subAt=+localStorage.getItem(k+"subat")||0;tier=localStorage.getItem(k+"tier")||(plan?"advanced":null);pwSeen2=localStorage.getItem(k+"pw2")==="1";pwSeen=localStorage.getItem(k+"pw")==="1";subRef=localStorage.getItem(k+"ref")==="coupon"?"coupon":null}catch(e){}if(locked(cur))cur=(cur>=12&&canAdv())?11:5}
+function enter(u){user=u;load();$("authwrap").hidden=true;$("app").hidden=false;render();scrollTo(0,0)}
+function setMode(m){
+  mode=m;const li=m==="login";
+  $("at").textContent=li?"Welcome back":"Create your account";
+  $("as").textContent=li?"Log in to pick up where you left off.":"Save your progress and XP as you learn.";
+  $("pw").autocomplete=li?"current-password":"new-password";$("amsg").textContent="";
+  const sw=$("sw3");sw.textContent=li?"Don't have an account? ":"Already have an account? ";
+  const a=el("a",li?"Sign up":"Log in");a.setAttribute("role","button");a.tabIndex=0;
+  const go=()=>setMode(li?"signup":"login");a.onclick=go;a.onkeydown=e=>{if(e.key==="Enter")go()};sw.append(a)}
+async function submit(){
+  const u=$("un").value.trim().toLowerCase(),p=$("pw").value,m=$("amsg");
+  if(!/^[a-z0-9_]{3,20}$/.test(u)){m.textContent="Username: 3 to 20 letters, numbers or underscores.";return}
+  if(u==="guest"){m.textContent="That username is reserved.";return}
+  if(p.length<4){m.textContent="Password needs at least 4 characters.";return}
+  const us=getUsers(),h=await hash(u,p);
+  if(mode==="signup"){if(us[u]){m.textContent="That username is taken. Switch to Log in.";return}us[u]={h};setUsers(us)}
+  else if(!us[u]||us[u].h!==h){m.textContent="Wrong username or password.";return}
+  $("pw").value="";try{localStorage.setItem("py-session",u)}catch(e){}
+  enter(u)}
+$("guest").onclick=()=>{try{localStorage.setItem("py-session","guest")}catch(e){}enter("guest")};
+$("go").onclick=submit;$("pw").onkeydown=e=>{if(e.key==="Enter")submit()};$("un").onkeydown=e=>{if(e.key==="Enter")$("pw").focus()};
+$("sub").onclick=showPaywall;
+$("out").onclick=()=>{closePay();user=null;plan=null;try{localStorage.removeItem("py-session")}catch(e){}Object.keys(sv).forEach(k=>delete sv[k]);$("app").hidden=true;$("authwrap").hidden=false;$("un").value="";setMode("login")};
+
+/* ---------- background themes ---------- */
+const TH=[
+ ["Midnight","linear-gradient(160deg,#070b24,#12236a 55%,#2563a8)",["#3b82f6","#7c3aed","#06b6d4"]],
+ ["Sunset","linear-gradient(160deg,#2b1055,#b4467a 58%,#e8895a)",["#f472b6","#fb923c","#a855f7"]],
+ ["Matrix","linear-gradient(160deg,#000,#04230f 60%,#0a5c2a)",["#16a34a","#065f46","#84cc16"]],
+ ["Ocean","linear-gradient(160deg,#022b3a,#0e7490 55%,#4fc3d9)",["#22d3ee","#0ea5e9","#2dd4bf"]]];
+const SN=['print("Hello")','for i in range(3):','def add(a, b):','import this','x = [1, 2, 3]','if ready:','return n * 2','class Dog:','{"a": 1}','len(items)','lambda n: n**2','try:'];
+(function(){
+  const fx=$("bgfx"),sws=[$("sw"),$("sw2")];let t=0,timer,saved=null;
+  try{saved=localStorage.getItem("py-theme")}catch(e){}
+  TH.forEach((x,i)=>{const d=el("div",null,"bgl");d.style.background=x[1];fx.append(d)});
+  ["a","b","c"].forEach(c=>fx.append(el("div",null,"blob "+c)));
+  const set=i=>{t=i;document.body.dataset.t=i;
+    [...fx.querySelectorAll(".bgl")].forEach((d,j)=>d.classList.toggle("on",j===i));
+    TH[i][2].forEach((c,j)=>document.body.style.setProperty("--b"+(j+1),c));
+    sws.forEach(w=>[...w.children].forEach((b,j)=>b.setAttribute("aria-pressed",j===i)))};
+  sws.forEach(w=>TH.forEach((x,i)=>{const b=el("button");b.type="button";b.style.background=x[1];b.setAttribute("aria-label",x[0]+" background");
+    b.onclick=()=>{clearInterval(timer);set(i);try{localStorage.setItem("py-theme",i)}catch(e){}};w.append(b)}));
+  for(let i=0;i<12;i++){const f=el("span",SN[i%SN.length],"fl");f.style.left=Math.random()*85+"%";f.style.animationDuration=12+Math.random()*10+"s";f.style.animationDelay=-Math.random()*20+"s";f.style.fontSize=.8+Math.random()*.5+"rem";fx.append(f)}
+  set(saved!==null&&TH[+saved]?+saved:0);
+  if(saved===null&&!reduced())timer=setInterval(()=>set((t+1)%TH.length),9000);
+})();
+let s0=null;try{s0=localStorage.getItem("py-session")}catch(e){}
+if(s0&&(s0==="guest"||getUsers()[s0]))enter(s0);else setMode(Object.keys(getUsers()).length?"login":"signup");
+</script>
+</body>
+</html>
